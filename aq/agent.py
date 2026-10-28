@@ -33,6 +33,13 @@ except Exception:
     _MODELS = False
 
 try:
+    from aq.llm_render import available as _render_available
+    from aq.llm_render import render as _llm_render
+    _RENDER = True
+except Exception:
+    _RENDER = False
+
+try:
     from aq.llm_parse import available as _llm_available
     from aq.llm_parse import llm_parse as _llm_parse
     _LLM = True
@@ -1232,7 +1239,19 @@ def llm_selftest() -> str:
             )
 
 
-def answer(text: str, context: str | None = None) -> str:
+def answer(text: str, context: str | None = None,
+           use_render: bool = True) -> str:
+    """回答一个问题。
+
+    Args:
+        text: 用户输入。
+        context: 上一轮的文本，用于继承模型规模与显存。
+        use_render: 是否允许用 LLM 组织措辞。数值始终来自测量管线；
+            无 API key 或数字校验不通过时自动退回模板。
+
+    Returns:
+        Markdown 格式的回答。
+    """
     q = parse_query(text, context=context)
     if q.intent == "selftest":
         return llm_selftest()
@@ -1251,5 +1270,13 @@ def answer(text: str, context: str | None = None) -> str:
     if q.intent == "table":
         return _ans_table(q) + _cite_for("table", q.dataset)
     if q.intent == "plan":
-        return _ans_plan(q) + _cite_for("plan", q.dataset)
-    return _ans_fit(q)
+        base = _ans_plan(q) + _cite_for("plan", q.dataset)
+    else:
+        base = _ans_fit(q)
+
+    # 表达层：LLM 只能重组 base 里已有的数字
+    if use_render and _RENDER and _render_available():
+        polished = _llm_render(text, base)
+        if polished:
+            return polished
+    return base

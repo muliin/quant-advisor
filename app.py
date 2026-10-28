@@ -85,6 +85,22 @@ def _last_user(history) -> str | None:
     return None
 
 
+def respond_with_key(query: str, history, api_key: str = ""):
+    """包装 respond：访客填了 key 就临时覆盖环境变量。"""
+    import os
+    prev = os.environ.get("LLM_API_KEY")
+    if api_key and api_key.strip():
+        os.environ["LLM_API_KEY"] = api_key.strip()
+    try:
+        return respond(query, history)
+    finally:
+        # 恢复原值，key 只在本次请求内有效
+        if prev is None:
+            os.environ.pop("LLM_API_KEY", None)
+        else:
+            os.environ["LLM_API_KEY"] = prev
+
+
 def respond(message: str, history: list):
     """收到一句话 → 返回 (清空输入, 新历史, 证据面板)"""
     if not message or not message.strip():
@@ -142,9 +158,17 @@ def build() -> gr.Blocks:
                 side = gr.Markdown(SIDEBAR)
                 dev = gr.Markdown(device_card())
                 evid = gr.Markdown(SYSTEM_CARD)
+                gr.Markdown("---\n### 可选：填入你自己的 API Key\n"
+                            "留空则使用内置规则（不消耗任何额度）。\n"
+                            "填入后可用更自然的表达，**key 只在本次请求内有效**。")
+                api_key = gr.Textbox(label="API Key（可选）", type="password",
+                                     placeholder="sk-... 留空即可")
 
-        send.click(respond, [msg, chatbot], [msg, chatbot, evid])
-        msg.submit(respond, [msg, chatbot], [msg, chatbot, evid])
+
+        send.click(respond_with_key, [msg, chatbot, api_key],
+                   [msg, chatbot, evid])
+        msg.submit(respond_with_key, [msg, chatbot, api_key],
+                   [msg, chatbot, evid])
         clear.click(lambda: ([], SYSTEM_CARD), None, [chatbot, evid])
     return demo
 
