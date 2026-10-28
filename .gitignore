@@ -1,0 +1,70 @@
+# ============================================================ 模型与缓存（体积巨大，绝不入库）
+.models/
+hf_cache/
+HF_HOME/
+out/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+*.onnx
+
+# ============================================================ Python
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ============================================================ 本地临时与备份
+_存档/
+_backup/
+tmp/
+temp/
+*.tmp
+*.bak
+*.log
+nul
+
+# ============================================================ 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================================ 密钥（绝不能提交）
+.env
+*.key
+secrets.json
+
+# 说明：results/*.csv 是核心证据（约 600 KB），必须入库
+# 说明：out/ 里的导出模型（1 GB）不入库，用 `python -m aq.export` 2 分钟可重建
+
+# 残留产物
+_upload.zip
+.piptmp/
+.vscode/
+*.zip
+
+# 注释改写前的快照（仅本地校验用）
+_snapshot/
+
+# ============================================================ 不公开的内部内容
+# 内部文档与教学参考实现（不公开）
+_private/
+# explore_model.py 的中间产物
+layers.csv
+# explore_model.py 的中间产物
+layers.txt
+
+# 与 sensitivity_moe.csv 内容完全相同的重复文件
+results/sensitivity_moe_2048.csv
+
+# 本地性能基线缓存（由 bench.py 运行时生成）
+.gpu_baseline.json

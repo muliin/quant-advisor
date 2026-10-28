@@ -1,0 +1,387 @@
+{
+  "meta": {
+    "version": "1.0",
+    "created": "2026-10-26",
+    "note": "本项目的核心事实库。每条带条件、证据、置信度；矛盾显式并列。",
+    "confidence_levels": {
+      "high": "我自己在真机上测过，有 CSV/脚本可复现",
+      "medium": "外部来源或单次测量，未交叉验证",
+      "low": "来自他人复述，未在本机验证"
+    }
+  },
+  "claims": [
+    {
+      "id": "K001",
+      "topic": "量化开销",
+      "claim": "4bit 的真实开销是 4.128 bits/参数，不是 4.0",
+      "conditions": "Qwen2.5-1.5B, bnb NF4 + double quant",
+      "evidence": "实测 1.0742 GiB / 1.3102e9 参数 = 4.128 bits/参数（10.19）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "开销",
+        "显存",
+        "4bit"
+      ]
+    },
+    {
+      "id": "K002",
+      "topic": "MoE 位宽",
+      "claim": "2bit 是悬崖：OLMoE 每一层专家压到 2bit 都掉 3.3%~17.4%",
+      "conditions": "OLMoE-1B-7B, NF4+clip 伪量化, 整层 128 个专家张量, 801 token 英文",
+      "evidence": "16 层整层测量：layer 1 最轻 +3.26%，layer 15 最重 +17.45%（10-26 云端）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "2bit",
+        "MoE",
+        "悬崖",
+        "层"
+      ]
+    },
+    {
+      "id": "K003",
+      "topic": "MoE 位宽",
+      "claim": "3bit 几乎无损：16 层范围 −0.62% ~ +1.75%",
+      "conditions": "同上",
+      "evidence": "16 层 × 3bit 整层测量（10-26 云端）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "3bit",
+        "MoE",
+        "安全下限"
+      ]
+    },
+    {
+      "id": "K004",
+      "topic": "分配有效性",
+      "claim": "同一总位数下，分配方向影响 41.7%",
+      "conditions": "OLMoE, 平均 3.5 bit, 便宜8层3bit+贵8层4bit vs 反向",
+      "evidence": "+7.396% vs +12.694%，差 5.299 个点（10-26 云端）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "分配",
+        "混合精度",
+        "有效"
+      ]
+    },
+    {
+      "id": "K005",
+      "topic": "加法模型失效",
+      "claim": "DP 用逐层实测代价做精确优化，预测自己方案 +3.50%，实测 +7.21%（低估 2.06 倍）",
+      "conditions": "OLMoE, 平均 3.5 bit, 候选 {3,4,5,6}",
+      "evidence": "预测 +3.497% vs 实测 +7.209%；且比手工方案 G(+6.932%) 还差 0.28 点",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "加法",
+        "优化",
+        "低估",
+        "DP"
+      ]
+    },
+    {
+      "id": "K006",
+      "topic": "加法模型失效",
+      "claim": "加法预测的偏差取决于方案被优化的程度：均匀 4bit 只低估 1.10 倍",
+      "conditions": "OLMoE, 全 4bit",
+      "evidence": "预测 +4.30% vs 实测 +4.733%（比值 1.10）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "加法",
+        "偏差",
+        "均匀"
+      ]
+    },
+    {
+      "id": "K007",
+      "topic": "α 指标审计",
+      "claim": "AlphaQ 的 α 指标在同一形状专家之间判别力仅 0.14",
+      "conditions": "OLMoE, 1024 个 down_proj 之间 / 1024 个 gate_up 之间",
+      "evidence": "Spearman ρ = −0.1407（down）/ −0.1291（gate_up）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "alphaq",
+        "α",
+        "判别力",
+        "审计"
+      ]
+    },
+    {
+      "id": "K008",
+      "topic": "α 指标审计",
+      "claim": "把 α 按 AlphaQ 默认 γ 组合进目标函数 η，预测力相对 Var 单独变成 0.41 倍（有害）",
+      "conditions": "OLMoE, γ_default = 27.10",
+      "evidence": "Var 单独 |ρ|=0.4077，η(α+Var) |ρ|=0.1675（10-26）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "alphaq",
+        "η",
+        "有害",
+        "γ"
+      ]
+    },
+    {
+      "id": "K009",
+      "topic": "α 指标审计",
+      "claim": "Var(W) 比 α 强 2.6 倍（|ρ| 0.41 vs 0.15），而 Var 本身是层深的代理",
+      "conditions": "OLMoE, 2048 个专家决策点",
+      "evidence": "Var 从 layer 0 的 0.000235 单调涨到 layer 15 的 0.000311，与 ΔPPL 同向",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "alphaq",
+        "Var",
+        "层深"
+      ]
+    },
+    {
+      "id": "K010",
+      "topic": "层趋势",
+      "claim": "层趋势只在 2bit 存在；3bit 以上就消失",
+      "conditions": "OLMoE 整层测量",
+      "evidence": "ρ(层号,ΔPPL) = 2bit +0.762 / 3bit +0.162 / 4bit −0.056",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "层趋势",
+        "位宽",
+        "消失"
+      ]
+    },
+    {
+      "id": "K011",
+      "topic": "层趋势",
+      "claim": "「这是第几层」这个整数是最强的预测信号",
+      "conditions": "OLMoE",
+      "evidence": "ρ(层号,ΔPPL) = +0.52（单专家 2048 点）/ +0.76（整层 16 点）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "层号",
+        "最强信号"
+      ]
+    },
+    {
+      "id": "K012",
+      "topic": "MoE 结构",
+      "claim": "down_proj 比 gate_up 过度敏感约 1.8 倍",
+      "conditions": "OLMoE, 2bit, top-10 最敏感",
+      "evidence": "top-10 里 down_proj 占 6 个，但只占专家参数 1/3 → 富集 1.8×",
+      "confidence": "medium",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "down_proj",
+        "脆弱",
+        "MoE"
+      ]
+    },
+    {
+      "id": "K013",
+      "topic": "推理加速",
+      "claim": "bnb 的 4bit 只用到 9.9% 的显存带宽，所以不提速",
+      "conditions": "RTX 5070 Laptop, 8 GiB, bnb 4bit, batch=1",
+      "evidence": "实测天花板 278.6 tok/s，实际 27.6 tok/s → 9.9%（10.22）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "bnb",
+        "带宽",
+        "不提速"
+      ]
+    },
+    {
+      "id": "K014",
+      "topic": "推理加速",
+      "claim": "换推理后端比换精度重要：vLLM 13.9 倍 vs INT4 1.8 倍",
+      "conditions": "云端 RTX 3090",
+      "evidence": "bnb4+eager 26.3 / bf16+vLLM 203.1 / AWQ-INT4+vLLM 364.8 tok/s（10.18）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "vLLM",
+        "后端",
+        "13.9倍"
+      ]
+    },
+    {
+      "id": "K015",
+      "topic": "Roofline",
+      "claim": "本机 Roofline 平衡点是 153 FLOP/byte",
+      "conditions": "RTX 5070 Laptop, 预热 30 秒后 49.5 TFLOPS / 324 GB/s",
+      "evidence": "短时测量会因功耗爬升低估 1.83 倍（26 vs 49.5 TFLOPS）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "Roofline",
+        "功耗爬升",
+        "153"
+      ]
+    },
+    {
+      "id": "K016",
+      "topic": "工具限制",
+      "claim": "在我这套环境下，bnb 的 load_in_4bit 完全不量化 OLMoE 的融合专家张量",
+      "conditions": "transformers 5.19 + bnb 0.50.2, OlmoeExperts 用 3D nn.Parameter",
+      "evidence": "加载后仍分配 12.517 GiB（4bit 应约 3.2 GiB）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [
+        "K017"
+      ],
+      "tags": [
+        "bnb",
+        "OLMoE",
+        "跳过",
+        "融合张量"
+      ]
+    },
+    {
+      "id": "K017",
+      "topic": "工具限制",
+      "claim": "某些 transformers 版本下 bnb 能看到融合专家并分配显存，但前向路由崩溃",
+      "conditions": "当专家被表示成 ModuleList[nn.Linear] 而非 3D Parameter 时",
+      "evidence": "unsloth-zoo PR #915 标题：Fix OLMoE load_in_4bit crash: route fused experts through the MoE backend",
+      "confidence": "medium",
+      "source": "external",
+      "contradicts": [
+        "K016"
+      ],
+      "tags": [
+        "bnb",
+        "OLMoE",
+        "崩溃",
+        "版本差异"
+      ]
+    },
+    {
+      "id": "K018",
+      "topic": "加法模型失效",
+      "claim": "dense 模型上单模块 ΔPPL% 直接相加会给出错误符号",
+      "conditions": "Qwen2.5-1.5B, 196 模块, 全 4bit",
+      "evidence": "ΣΔPPL% 预测 −7.10%，实测 +15.32%；贪心方案比均匀 4bit 差 75%（10.26）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "加法",
+        "dense",
+        "符号反",
+        "贪心"
+      ]
+    },
+    {
+      "id": "K019",
+      "topic": "MoE 位宽",
+      "claim": "3bit 相对 bf16 是 5.33 倍压缩",
+      "conditions": "OLMoE, 16bit → 3bit",
+      "evidence": "16/3 = 5.33",
+      "confidence": "high",
+      "source": "calculation",
+      "contradicts": [],
+      "tags": [
+        "压缩比",
+        "3bit"
+      ]
+    },
+    {
+      "id": "K020",
+      "topic": "α 指标审计",
+      "claim": "α 在 dense 模型上判别力同样弱，且换尾部选法会导致符号翻转",
+      "conditions": "Qwen2.5-1.5B, 196 个 Linear",
+      "evidence": "朴素 Hill ρ=−0.31；Fix-finger ρ=+0.42；归一化后 12 个变体全部 |ρ|<0.09",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "alphaq",
+        "α",
+        "dense",
+        "符号翻转"
+      ]
+    },
+    {
+      "id": "K021",
+      "topic": "测量陷阱",
+      "claim": "同一台笔记本 GPU，不同功耗档下算力可差 2.4 倍",
+      "conditions": "RTX 5070 Laptop, 满载功耗 60 W vs 上限 115 W",
+      "evidence": "低功耗档 20.4 TFLOPS（pstate=P4）/ 满功耗档 49.5 TFLOPS（10.22 记录）；预热 24 s 后仍只到 33.3 TFLOPS，nvidia-smi 报 60.1/115 W",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "功耗",
+        "算力",
+        "低估",
+        "笔记本",
+        "预热"
+      ]
+    },
+    {
+      "id": "K022",
+      "topic": "测量陷阱",
+      "claim": "短促测量会把算力低估 2 倍以上，必须持续负载 13~30 秒等功耗爬升",
+      "conditions": "笔记本 GPU，功耗上限动态",
+      "evidence": "不预热 20.2 TFLOPS → 预热 15 s 后 23.1 → 预热 24 s 后 33.3；10.22 记录满功耗可达 49.5",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "预热",
+        "功耗爬升",
+        "测量陷阱"
+      ]
+    },
+    {
+      "id": "K023",
+      "topic": "数据来源",
+      "claim": "敏感度排序由模型权重决定，跨硬件可迁移；但显存/带宽/算力必须现测",
+      "conditions": "敏感度：同一模型在任何机器上排序一致；硬件指标：逐机不同",
+      "evidence": "伪量化只改数值、不改计算图，所以敏感度是权重的属性 —— 换机器不用重测，换模型必须重测；而显存/带宽/算力完全由硬件决定（同一台笔记本不同功耗档算力差 2.4 倍，见 K021）",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "数据来源",
+        "可迁移性",
+        "诚实"
+      ]
+    },
+    {
+      "id": "K024",
+      "topic": "方法约束",
+      "claim": "逐单元敏感度扫描必须在 bf16 权重上做，所以「模型装不下 bf16」就无法测",
+      "conditions": "伪量化 = 量化→立刻反量化，权重须为原精度",
+      "evidence": "8 GiB 卡：1.5B(3.37 GiB) 可测；7B(13.9 GiB) 与 OLMoE(12.89 GiB) 不可测。在 4bit 权重上再做伪量化，测的是「压缩过的再压缩」，没有意义。",
+      "confidence": "high",
+      "source": "local",
+      "contradicts": [],
+      "tags": [
+        "bf16",
+        "显存",
+        "方法约束",
+        "三档"
+      ]
+    }
+  ]
+}

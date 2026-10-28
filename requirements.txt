@@ -1,0 +1,32 @@
+# 运行时依赖
+#
+# 环境：Python 3.12 · CUDA 12.8 · Windows / Linux
+# 已验证版本（2026-10，RTX 5070 Laptop 8 GiB 与 RTX 4080 SUPER 31 GiB）
+#
+# 注意：
+#   · torch 需匹配本机 CUDA。下方 cu128 一行人仅适用于 CUDA 12.8；
+#     其他版本请从 https://pytorch.org/get-started/locally/ 取对应命令。
+#   · bitsandbytes 在 Windows 上需要其官方 wheel（含 CUDA 运行时）。
+
+# --- 核心 ---
+torch==2.9.1+cu128          ; sys_platform == "linux"
+torch==2.9.1                ; sys_platform == "win32"
+transformers==5.19.0
+accelerate==1.15.0
+bitsandbytes==0.50.2
+safetensors==0.8.0
+huggingface-hub==2.2.0
+
+# --- 数值 ---
+numpy==2.5.4
+
+# --- 界面 ---
+gradio==6.30.0
+
+# --- 绘图（Pareto 图，可选）---
+matplotlib==3.11.2
+
+# --- 进程与显存监控 ---
+psutil==7.2.2
+
+# 可选：启用 LLM 意图解析时无需额外包（使用标准库 urllib）

@@ -1,0 +1,4 @@
+plan,avg_bits,rel_pct
+A: 8层3bit + 8层4bit（实验F）,3.5,7.3956
+G: 12层3bit + 4层5bit,3.5,6.9322
+H: 14层3bit + 2层7bit,3.5,11.3303

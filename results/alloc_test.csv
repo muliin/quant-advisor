@@ -1,0 +1,5 @@
+plan,rel_pct,avg_bits
+uniform 2bit（基准）,1902.4999,2.0
+uniform 3bit（基准）,15.8026,3.0
+uniform 4bit（基准）,4.7327,4.0
+smart：便宜8层2bit + 贵8层4bit,238.9289,3.0
