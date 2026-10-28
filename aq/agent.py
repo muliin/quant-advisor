@@ -1235,8 +1235,8 @@ def llm_selftest() -> str:
     return (f"✅ **LLM 解析正常**（{dt:.2f}s）\n\n"
             f"输入：我16G显存，想本地部署deepseekV3模型\n\n"
             f"解析结果：`{d}`\n\n"
-            "> 注意：LLM 只解析意图和参数，**所有数值结论仍来自实测**。",
-            )
+            "> LLM 只解析意图与组织措辞，**所有数值结论仍来自实测**，"
+            "且输出需通过数字校验。")
 
 
 def answer(text: str, context: str | None = None,

@@ -13,7 +13,19 @@ from __future__ import annotations
 
 import argparse
 
-import gradio as gr
+# INTERPRETER HINT: 若在此报 ModuleNotFoundError，说明用的不是项目环境。
+try:
+    import gradio as gr
+except ModuleNotFoundError:
+    import sys
+    sys.stderr.write(
+        "\n[启动失败] 当前解释器缺少 gradio：\n"
+        f"  {sys.executable}\n\n"
+        "请使用项目环境的解释器启动，例如：\n"
+        "  D:\\miniforge3\\envs\\llmquant\\python.exe app.py\n"
+        "或先激活环境：conda activate llmquant && python app.py\n\n"
+        "依赖安装：pip install -r requirements.txt\n")
+    raise SystemExit(1)
 
 from aq.agent import SYSTEM_CARD, answer, tool_probe
 
